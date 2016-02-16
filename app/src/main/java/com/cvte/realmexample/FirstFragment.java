@@ -9,20 +9,18 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.cvte.realmexample.model.Event;
 import com.cvte.realmexample.model.Games;
 import com.cvte.realmexample.model.Users;
-import com.cvte.realmexample.model.dao.RealmDao;
 
 import java.util.UUID;
 
 import butterknife.Bind;
-import butterknife.ButterKnife;
 import io.realm.Realm;
-import io.realm.RealmAsyncTask;
+import io.realm.RealmObject;
 import rx.Observable;
 import rx.Subscriber;
 import rx.Subscription;
-import rx.functions.Action1;
 
 public class FirstFragment extends Fragment {
 
@@ -36,7 +34,10 @@ public class FirstFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         realm = Realm.getDefaultInstance();
-        update();
+
+        //1、update game and event at the same time
+        updateGame();
+        updateEvent();
     }
 
     @Override
@@ -58,6 +59,14 @@ public class FirstFragment extends Fragment {
     public void onResume() {
         super.onResume();
         textView.setText("");
+        //2、listen all data change
+
+        /**
+         *high reproducibility
+                io.realm.internal.async.BadVersionException: std::exception in io_realm_internal_TableQuery.cpp line 1094
+                or java.lang.IllegalStateException: Caller thread behind the worker thread
+                will throw 
+         */
         subscription = realm.where(Games.class).findAllAsync().asObservable().subscribe(games -> {
             for (Games g :
                     games) {
@@ -65,21 +74,10 @@ public class FirstFragment extends Fragment {
             }
         });
 
-        String id = UUID.randomUUID().toString();
-        new RealmAsyncTransaction().executeTransactionObservable(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                Games games = new Games();
-                games.setId(id);
-                games.setName("test-name!!");
-                realm.copyToRealmOrUpdate(games);
-            }
-        }).subscribe(new Action1<Boolean>() {
-            @Override
-            public void call(Boolean aBoolean) {
-                Log.e("lh", "save " + id + " " + aBoolean + " result ...." + Realm.getDefaultInstance().allObjects(Games.class));
-            }
-        });
+        //low reproducibility
+//        subscription = realm.where(Games.class).findFirstAsync().asObservable().filter(RealmObject::isLoaded).cast(Games.class).subscribe(games -> {
+//            textView.setText(games.getName());
+//        });
     }
 
     @Override
@@ -88,49 +86,42 @@ public class FirstFragment extends Fragment {
         subscription.unsubscribe();
     }
 
-    //assume update data
-    private void update() {
-        TimerTask timerTask = new TimerTask(200);
-        timerTask.startTask(new TimerTask.TimerTaskOnFinishedListener() {
-            @Override
-            public void onFinished() {
-                Log.e("lh", "begin update first");
-                Realm realm = Realm.getDefaultInstance();
-                realm.executeTransaction(realm1 -> {
-                    Log.e("lh", "updating first");
-                    String updateJson = "{\n" +
-                            "  \"id\": \"id1\",\n" +
-                            "  \"name\": \"Hello World\",\n" +
-                            "  \"games\": [\n" +
-                            "    {\n" +
-                            "      \"id\": \"id1\",\n" +
-                            "      \"name\": \"games1\"\n" +
-                            "    },\n" +
-                            "    {\n" +
-                            "      \"id\": \"id2\",\n" +
-                            "      \"name\": \"games2\"\n" +
-                            "    },\n" +
-                            "    {\n" +
-                            "      \"id\": \"id3\",\n" +
-                            "      \"name\": \"games3\"\n" +
-                            "    }\n" +
-                            "  ]\n" +
-                            "}";
-                    realm1.createOrUpdateAllFromJson(Users.class, updateJson);
-                }, new Realm.Transaction.Callback() {
-                    @Override
-                    public void onSuccess() {
-                        super.onSuccess();
-                        realm.close();
-                    }
+    //assume updateGame data
+    private void updateGame() {
+        Log.e("lh", "begin updateGame first");
+        new RealmAsyncTransaction().executeTransactionObservable(realm1 -> {
+            Log.e("lh", "updating first");
+            String updateJson = "{\n" +
+                    "  \"id\": \"id1\",\n" +
+                    "  \"name\": \"Hello World\",\n" +
+                    "  \"games\": [\n" +
+                    "    {\n" +
+                    "      \"id\": \"id1\",\n" +
+                    "      \"name\": \"games1\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"id\": \"id2\",\n" +
+                    "      \"name\": \"games2\"\n" +
+                    "    },\n" +
+                    "    {\n" +
+                    "      \"id\": \"id3\",\n" +
+                    "      \"name\": \"games3\"\n" +
+                    "    }\n" +
+                    "  ]\n" +
+                    "}";
+            realm1.createOrUpdateAllFromJson(Users.class, updateJson);
+        });
+    }
 
-                    @Override
-                    public void onError(Exception e) {
-                        super.onError(e);
-                        realm.close();
-                    }
-                });
-            }
+    private void updateEvent() {
+        String id = UUID.randomUUID().toString();
+        new RealmAsyncTransaction().executeTransactionObservable(realm1 -> {
+            Event games = new Event();
+            games.setId(id);
+            games.setName("test-name!!");
+            realm1.copyToRealmOrUpdate(games);
+        }).subscribe(aBoolean -> {
+            Log.e("lh", "save " + id + " " + aBoolean + " result ...." + Realm.getDefaultInstance().allObjects(Event.class));
         });
     }
 
