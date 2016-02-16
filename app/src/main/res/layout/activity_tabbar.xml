@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <com.cvte.realmexample.tabbar.TabBarView
+        android:id="@+id/tabBarView"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/DP_56"
+        android:layout_alignParentBottom="true" />
+
+    <RelativeLayout
+        android:id="@+id/relativeLayout_tabBarContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/tabBarView"
+        android:layout_alignParentTop="true">
+
+        <com.cvte.realmexample.tabbar.NoScrollViewPager
+            android:id="@+id/viewPager_tabBarContent"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </RelativeLayout>
+
+</RelativeLayout>
