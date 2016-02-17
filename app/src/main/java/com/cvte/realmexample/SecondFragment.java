@@ -53,11 +53,15 @@ public class SecondFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        subscription = RealmDao
-                .getDao(Event.class)
-                .getAsyncObservable("id1", realm)
+        subscription = realm.where(Event.class)
+                .findAllAsync()
+                .asObservable()
                 .subscribe(event -> {
-                    textView.setText("second - game name: " + event.getName());
+                    textView.setText("");
+                    for (Event e :
+                            event) {
+                        textView.append("second - event id: " + e.getId());
+                    }
                 });
     }
 

@@ -35,8 +35,8 @@ public class FirstFragment extends Fragment {
         super.onCreate(savedInstanceState);
         realm = Realm.getDefaultInstance();
 
-        //1、update game and event at the same time
-        updateGame();
+        //1、update event
+//        updateGame();
         updateEvent();
     }
 
@@ -65,7 +65,7 @@ public class FirstFragment extends Fragment {
          *high reproducibility
                 io.realm.internal.async.BadVersionException: std::exception in io_realm_internal_TableQuery.cpp line 1094
                 or java.lang.IllegalStateException: Caller thread behind the worker thread
-                will throw 
+                will throw
          */
         subscription = realm.where(Games.class).findAllAsync().asObservable().subscribe(games -> {
             for (Games g :
@@ -115,13 +115,30 @@ public class FirstFragment extends Fragment {
 
     private void updateEvent() {
         String id = UUID.randomUUID().toString();
-        new RealmAsyncTransaction().executeTransactionObservable(realm1 -> {
+        Log.e("lh", "before save " + id + "----" + Realm.getDefaultInstance().allObjects(Event.class).size());
+//        new RealmAsyncTransaction().executeTransactionObservable(realm1 -> {
+//            Event games = new Event();
+//            games.setId(id);
+//            games.setName("test-name!!");
+//            realm1.copyToRealmOrUpdate(games);
+//        }).subscribe(aBoolean -> {
+//            Log.e("lh", "save " + id + " " + aBoolean + " result ...." + Realm.getDefaultInstance().allObjects(Event.class));
+//        });
+        realm.executeTransaction(realm1 -> {
             Event games = new Event();
             games.setId(id);
             games.setName("test-name!!");
             realm1.copyToRealmOrUpdate(games);
-        }).subscribe(aBoolean -> {
-            Log.e("lh", "save " + id + " " + aBoolean + " result ...." + Realm.getDefaultInstance().allObjects(Event.class));
+        }, new Realm.Transaction.Callback() {
+            @Override
+            public void onSuccess() {
+                super.onSuccess();
+                //Not update yet
+                Log.e("lh", "save " + id + " result ...." + realm.allObjects(Event.class).size());
+
+                //Delay 1s, will be work
+                new TimerTask(1000).startTask(() -> Log.e("lh", "save " + id + " result after 1s...." + realm.allObjects(Event.class).size()));
+            }
         });
     }
 
