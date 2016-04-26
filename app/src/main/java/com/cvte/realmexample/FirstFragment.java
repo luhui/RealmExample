@@ -116,29 +116,19 @@ public class FirstFragment extends Fragment {
     private void updateEvent() {
         String id = UUID.randomUUID().toString();
         Log.e("lh", "before save " + id + "----" + Realm.getDefaultInstance().allObjects(Event.class).size());
-//        new RealmAsyncTransaction().executeTransactionObservable(realm1 -> {
-//            Event games = new Event();
-//            games.setId(id);
-//            games.setName("test-name!!");
-//            realm1.copyToRealmOrUpdate(games);
-//        }).subscribe(aBoolean -> {
-//            Log.e("lh", "save " + id + " " + aBoolean + " result ...." + Realm.getDefaultInstance().allObjects(Event.class));
-//        });
-        realm.executeTransaction(realm1 -> {
+        realm.executeTransactionAsync(realm1 -> {
             Event games = new Event();
             games.setId(id);
             games.setName("test-name!!");
             realm1.copyToRealmOrUpdate(games);
-        }, new Realm.Transaction.Callback() {
-            @Override
-            public void onSuccess() {
-                super.onSuccess();
-                //Not update yet
-                Log.e("lh", "save " + id + " result ...." + realm.allObjects(Event.class).size());
+        }, () -> {
+            //Not update yet
+            Log.e("lh", "save " + id + " result ...." + realm.allObjects(Event.class).size());
+            realm.refresh();
+            Log.e("lh", "after realm.refresh()-----save " + id + " result ...." + realm.allObjects(Event.class).size());
 
-                //Delay 1s, will be work
-                new TimerTask(1000).startTask(() -> Log.e("lh", "save " + id + " result after 1s...." + realm.allObjects(Event.class).size()));
-            }
+            //Delay 1s, will be work
+            new TimerTask(1000).startTask(() -> Log.e("lh", "save " + id + " result after 1s...." + realm.allObjects(Event.class).size()));
         });
     }
 

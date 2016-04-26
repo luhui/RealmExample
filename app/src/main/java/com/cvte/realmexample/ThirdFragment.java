@@ -3,6 +3,7 @@ package com.cvte.realmexample;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +15,7 @@ import com.cvte.realmexample.model.dao.RealmDao;
 
 import io.realm.Realm;
 import rx.Subscription;
+import rx.functions.Func1;
 
 
 /**
@@ -51,7 +53,9 @@ public class ThirdFragment extends Fragment {
         subscription = RealmDao
                 .getDao(Users.class)
                 .getAsyncObservable("id1", realm)
+                .filter(users -> users.isLoaded())
                 .subscribe(user -> {
+                    Log.e("lh", "shi?is load?" + user.isLoaded());
                     textView.setText("third - user name: " + user.getName());
                 });
     }

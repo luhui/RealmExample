@@ -17,9 +17,11 @@ import com.cvte.realmexample.model.dao.RealmDao;
 import com.cvte.realmexample.tabbar.TabBarActivity;
 
 import io.realm.Realm;
+import io.realm.RealmResults;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
+import rx.functions.Func1;
 
 
 /**
@@ -56,6 +58,7 @@ public class SecondFragment extends Fragment {
         subscription = realm.where(Event.class)
                 .findAllAsync()
                 .asObservable()
+                .filter(events -> events.isLoaded())
                 .subscribe(event -> {
                     textView.setText("");
                     for (Event e :

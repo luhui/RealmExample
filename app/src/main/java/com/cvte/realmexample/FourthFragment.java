@@ -17,6 +17,7 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 import io.realm.Realm;
 import rx.Subscription;
+import rx.functions.Func1;
 
 /**
  * Created by mluhui on 16/2/1.
@@ -57,6 +58,7 @@ public class FourthFragment extends Fragment {
         subscription = RealmDao
                 .getDao(Games.class)
                 .getAsyncObservable("id1", realm)
+                .filter(games -> games.isLoaded())
                 .subscribe(games -> {
                     textView.setText("fourth - game name: " + games.getName());
                 });
